@@ -1,0 +1,256 @@
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+
+-- Create a ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "DraggableGui"
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+-- Create a Frame (main window)
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0.35, 0, 0.5, 0)  -- Larger size for a more prominent UI
+frame.BackgroundColor3 = Color3.new(0, 0, 0)  -- Completely black panel
+frame.Position = UDim2.new(0.325, 0, 0.25, 0)
+frame.Active = true  -- Makes the frame draggable
+frame.Draggable = true  -- Makes the frame draggable
+frame.BackgroundTransparency = 1  -- Start transparent for animation
+frame.BorderSizePixel = 0  -- Remove the border
+frame.Parent = screenGui
+
+-- Create a Title Label
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1, 0, 0.1, 0)  -- Full width, 10% height of the panel
+titleLabel.Position = UDim2.new(0, 0, 0, 0)  -- Top middle of the panel
+titleLabel.BackgroundTransparency = 1  -- Transparent background
+titleLabel.Text = "AIWDWUIDJ"  -- Replace with your title text
+titleLabel.TextColor3 = Color3.new(1, 1, 1)  -- White color
+titleLabel.Font = Enum.Font.GothamBold  -- Cool font, you can change this to another font
+titleLabel.TextSize = 24  -- Adjust text size as needed
+titleLabel.TextStrokeTransparency = 0.5  -- Optional: adds a slight stroke to make the text stand out
+titleLabel.TextScaled = true  -- Ensures the text scales correctly
+titleLabel.Parent = frame
+
+-- Create a Close (X) Button
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -35, 0, 5)
+closeButton.BackgroundColor3 = Color3.new(1, 0, 0)
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.new(1, 1, 1)
+closeButton.Font = Enum.Font.SourceSansBold
+closeButton.TextSize = 18
+closeButton.BorderSizePixel = 0  -- No border for buttons
+closeButton.AutoButtonColor = false
+closeButton.Parent = frame
+
+-- Create a Page Container (for switching between pages)
+local pageContainer = Instance.new("Frame")
+pageContainer.Size = UDim2.new(0.8, 0, 0.8, 0)
+pageContainer.Position = UDim2.new(0.15, 0, 0.15, 0)
+pageContainer.BackgroundTransparency = 1
+pageContainer.Parent = frame
+
+-- Create Pages (these will be switched by side buttons)
+local pages = {}
+for i = 1, 3 do
+    local page = Instance.new("Frame")
+    page.Size = UDim2.new(1, 0, 1, 0)
+    page.BackgroundTransparency = 1
+    page.Visible = (i == 1)  -- Only show the first page by default
+    page.Parent = pageContainer
+    pages[i] = page
+end
+
+-- Create Side Buttons for Page Switching (on the left side)
+local function createSideButton(text, page)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0.15, 0, 0.1, 0)
+    button.Position = UDim2.new(0, 0, 0.15 + (page - 1) * 0.12, 0)
+    button.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+    button.Text = text
+    button.TextColor3 = Color3.new(1, 1, 1)
+    button.Font = Enum.Font.SourceSans
+    button.TextSize = 18
+    button.BorderSizePixel = 0
+    button.AutoButtonColor = false
+    button.Parent = frame
+
+    -- Button Hover Effect
+    button.MouseEnter:Connect(function()
+        button.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+    end)
+    button.MouseLeave:Connect(function()
+        button.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+    end)
+
+    return button
+end
+
+-- Define the names for the pages
+local pageNames = {"BOT", "ESP", "MISC"}
+
+-- Connect Side Buttons to Page Switching
+for i = 1, 3 do
+    local button = createSideButton(pageNames[i], i)
+    button.MouseButton1Click:Connect(function()
+        for j = 1, #pages do
+            pages[j].Visible = (i == j)
+        end
+    end)
+end
+
+-- Create Toggle Switches for Page 1 (BOT)
+local function createToggleSwitch(parent, position, title)
+    local toggleFrame = Instance.new("Frame")
+    toggleFrame.Size = UDim2.new(0.8, 0, 0.1, 0)
+    toggleFrame.Position = position
+    toggleFrame.BackgroundColor3 = Color3.new(0, 0, 0)  -- Black background
+    toggleFrame.BorderSizePixel = 0
+    toggleFrame.Parent = parent
+
+    local toggleButton = Instance.new("TextButton")
+    toggleButton.Size = UDim2.new(0.3, 0, 1, 0)
+    toggleButton.Position = UDim2.new(0.65, 0, 0, 0)
+    toggleButton.BackgroundColor3 = Color3.new(1, 0, 0)  -- Red for "Off"
+    toggleButton.Text = "Off"
+    toggleButton.TextColor3 = Color3.new(1, 1, 1)
+    toggleButton.Font = Enum.Font.SourceSans
+    toggleButton.TextSize = 18
+    toggleButton.BorderSizePixel = 0
+    toggleButton.Parent = toggleFrame
+
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Size = UDim2.new(0.6, 0, 1, 0)
+    titleLabel.Position = UDim2.new(0, 0, 0, 0)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = title
+    titleLabel.TextColor3 = Color3.new(1, 1, 1)
+    titleLabel.Font = Enum.Font.SourceSans
+    titleLabel.TextSize = 18
+    titleLabel.Parent = toggleFrame
+
+    -- Toggle logic
+    local isOn = false
+    toggleButton.MouseButton1Click:Connect(function()
+        isOn = not isOn
+        if isOn then
+            toggleButton.Text = "On"
+            toggleButton.BackgroundColor3 = Color3.new(0, 1, 0)  -- Green for "On"
+        else
+            toggleButton.Text = "Off"
+            toggleButton.BackgroundColor3 = Color3.new(1, 0, 0)  -- Red for "Off"
+        end
+    end)
+
+    return toggleFrame
+end
+
+-- Add 4 Toggle Switches to the first page (BOT) with titles
+local botTitles = {"Aim Bot (RightClick)", "AI Prediction v1", "Trigger Bot", "Silent Aim"}
+for i = 1, 4 do
+    createToggleSwitch(pages[1], UDim2.new(0.1, 0, 0.1 + (i - 1) * 0.12, 0), botTitles[i])
+end
+
+-- Add 4 Toggle Switches to the second page (ESP) with different titles
+local espTitles = {"ESP Enabled", "Box ESP", "Name ESP", "Distance ESP"}
+for i = 1, 4 do
+    createToggleSwitch(pages[2], UDim2.new(0.1, 0, 0.1 + (i - 1) * 0.12, 0), espTitles[i])
+end
+
+-- Add Dropdown under "ESP Option 1"
+local function createDropdown(parent, position)
+    local dropdownFrame = Instance.new("Frame")
+    dropdownFrame.Size = UDim2.new(0.8, 0, 0.3, 0)
+    dropdownFrame.Position = position
+    dropdownFrame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+    dropdownFrame.BorderSizePixel = 0
+    dropdownFrame.Parent = parent
+
+    local dropdownButton = Instance.new("TextButton")
+    dropdownButton.Size = UDim2.new(1, 0, 0.2, 0)
+    dropdownButton.Position = UDim2.new(0, 0, 0, 0)
+    dropdownButton.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+    dropdownButton.Text = "Select ESP Option"
+    dropdownButton.TextColor3 = Color3.new(1, 1, 1)
+    dropdownButton.Font = Enum.Font.SourceSans
+    dropdownButton.TextSize = 18
+    dropdownButton.BorderSizePixel = 0
+    dropdownButton.AutoButtonColor = false
+    dropdownButton.Parent = dropdownFrame
+
+    local optionsFrame = Instance.new("Frame")
+    optionsFrame.Size = UDim2.new(1, 0, 0.8, 0)
+    optionsFrame.Position = UDim2.new(0, 0, 0.2, 0)
+    optionsFrame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+    optionsFrame.BorderSizePixel = 0
+    optionsFrame.Visible = false
+    optionsFrame.Parent = dropdownFrame
+
+    local options = {"Box ESP", "Skeleton ESP"}
+    for i, option in ipairs(options) do
+        local optionButton = Instance.new("TextButton")
+        optionButton.Size = UDim2.new(1, 0, 1/#options, 0)
+        optionButton.Position = UDim2.new(0, 0, (i - 1) * (1/#options), 0)
+        optionButton.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+        optionButton.Text = option
+        optionButton.TextColor3 = Color3.new(1, 1, 1)
+        optionButton.Font = Enum.Font.SourceSans
+        optionButton.TextSize = 18
+        optionButton.BorderSizePixel = 0
+        optionButton.AutoButtonColor = false
+        optionButton.Parent = optionsFrame
+
+        optionButton.MouseButton1Click:Connect(function()
+            dropdownButton.Text = option
+            optionsFrame.Visible = false
+        end)
+    end
+
+    dropdownButton.MouseButton1Click:Connect(function()
+        optionsFrame.Visible = not optionsFrame.Visible
+    end)
+end
+
+-- Create the dropdown under "ESP Option 1"
+local espOption1 = pages[2]:FindFirstChild("ESP Option 1")
+if espOption1 then
+    createDropdown(espOption1, UDim2.new(0.1, 0, 0.1 + 0.6, 0))  -- Adjust position as needed
+end
+
+-- Add a small red text at the bottom right of the panel
+local byTextLabel = Instance.new("TextLabel")
+byTextLabel.Size = UDim2.new(0.3, 0, 0.1, 0)
+byTextLabel.Position = UDim2.new(1, -150, 1, -30)
+byTextLabel.BackgroundTransparency = 1
+byTextLabel.Text = "by x.911"
+byTextLabel.TextColor3 = Color3.new(1, 0, 0)  -- Red color
+byTextLabel.Font = Enum.Font.SourceSans
+byTextLabel.TextSize = 14
+byTextLabel.TextXAlignment = Enum.TextXAlignment.Right
+byTextLabel.Parent = frame
+
+-- Close Button Functionality
+closeButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
+
+-- Keybind to Toggle GUI Visibility (ALT + Q)
+local guiVisible = true
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if input.KeyCode == Enum.KeyCode.Q and UserInputService:IsKeyDown(Enum.KeyCode.LeftAlt) then
+        guiVisible = not guiVisible
+        screenGui.Enabled = guiVisible
+    end
+end)
+
+-- Animate the GUI appearance (fade in)
+local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+local fadeIn = TweenService:Create(frame, tweenInfo, {BackgroundTransparency = 0})
+fadeIn:Play()
+
+-- Close Button Functionality
+closeButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()  -- This line will ensure the GUI is destroyed when the X button is clicked
+end)
