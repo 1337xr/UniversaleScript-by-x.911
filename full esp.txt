@@ -1,0 +1,30 @@
+-- LocalScript
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+-- Function to refresh highlights
+local function RefreshHighlights()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player.Character then
+            -- Check if the character already has a highlight
+            local highlight = player.Character:FindFirstChildWhichIsA("Highlight")
+            if not highlight then
+                -- Create a new highlight if it doesn't exist
+                highlight = Instance.new("Highlight")
+                highlight.Parent = player.Character
+            end
+            -- Set the highlight properties
+            highlight.OutlineColor = Color3.new(1, 0, 0) -- Red color
+            highlight.OutlineTransparency = 0 -- Make the outline visible
+            highlight.Adornee = player.Character -- Ensure the highlight is applied to the character
+        end
+    end
+end
+
+-- Run the function initially and then every frame to ensure updates
+RefreshHighlights()
+
+-- Use RenderStepped to update the highlights continuously
+RunService.RenderStepped:Connect(function()
+    RefreshHighlights()
+end)
