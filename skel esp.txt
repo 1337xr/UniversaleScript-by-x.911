@@ -1,0 +1,109 @@
+-- Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+-- Function to create Skeleton ESP
+local function createSkeletonESP(player)
+    if player.Character then
+        local character = player.Character
+        local torso = character:FindFirstChild("Torso") or character:FindFirstChild("UpperTorso")
+        local head = character:FindFirstChild("Head")
+        local rightUpperArm = character:FindFirstChild("RightUpperArm")
+        local leftUpperArm = character:FindFirstChild("LeftUpperArm")
+        local rightLowerArm = character:FindFirstChild("RightLowerArm")
+        local leftLowerArm = character:FindFirstChild("LeftLowerArm")
+        local rightUpperLeg = character:FindFirstChild("RightUpperLeg")
+        local leftUpperLeg = character:FindFirstChild("LeftUpperLeg")
+        local rightLowerLeg = character:FindFirstChild("RightLowerLeg")
+        local leftLowerLeg = character:FindFirstChild("LeftLowerLeg")
+
+        if torso and head and rightUpperArm and leftUpperArm and rightLowerArm and leftLowerArm and rightUpperLeg and leftUpperLeg and rightLowerLeg and leftLowerLeg then
+            -- Create lines for skeleton effect
+            local function createLine(part1, part2)
+                local line = Drawing.new("Line")
+                line.Color = Color3.new(1, 1, 1) -- White color for skeleton
+                line.Thickness = 2
+                line.Transparency = 0
+                line.From = Vector2.new(0, 0)
+                line.To = Vector2.new(0, 0)
+
+                RunService.RenderStepped:Connect(function()
+                    if part1 and part2 then
+                        local pos1 = part1.Position
+                        local pos2 = part2.Position
+                        local screenPos1 = game.Workspace.CurrentCamera:WorldToScreenPoint(pos1)
+                        local screenPos2 = game.Workspace.CurrentCamera:WorldToScreenPoint(pos2)
+                        line.From = Vector2.new(screenPos1.X, screenPos1.Y)
+                        line.To = Vector2.new(screenPos2.X, screenPos2.Y)
+                    else
+                        line.Visible = false
+                    end
+                end)
+
+                -- Remove the line when the character is removed
+                character.AncestryChanged:Connect(function(child, parent)
+                    if not parent then
+                        line:Remove()
+                    end
+                end)
+            end
+
+            createLine(torso, head)
+            createLine(torso, rightUpperArm)
+            createLine(rightUpperArm, rightLowerArm)
+            createLine(torso, leftUpperArm)
+            createLine(leftUpperArm, leftLowerArm)
+            createLine(torso, rightUpperLeg)
+            createLine(rightUpperLeg, rightLowerLeg)
+            createLine(torso, leftUpperLeg)
+            createLine(leftUpperLeg, leftLowerLeg)
+        end
+    end
+end
+
+-- Function to remove Skeleton ESP
+local function removeSkeletonESP(player)
+    if player.Character then
+        local character = player.Character
+        for _, child in pairs(character:GetDescendants()) do
+            if child:IsA("Highlight") or (child:IsA("Drawing") and child.Name == "Line") then
+                child:Destroy()
+            end
+        end
+    end
+end
+
+-- Toggle logic for Skeleton ESP
+local isSkeletonESPOn = false
+local function toggleSkeletonESP()
+    isSkeletonESPOn = not isSkeletonESPOn
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team then
+            if isSkeletonESPOn then
+                createSkeletonESP(player)
+            else
+                removeSkeletonESP(player)
+            end
+        end
+    end
+end
+
+-- Connect to PlayerAdded event to handle new players
+Players.PlayerAdded:Connect(function(player)
+    if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team then
+        if isSkeletonESPOn then
+            createSkeletonESP(player)
+        end
+    end
+
+    -- Handle character spawn
+    player.CharacterAdded:Connect(function(character)
+        if isSkeletonESPOn then
+            createSkeletonESP(player)
+        end
+    end)
+end)
+
+-- Example: Call the function when a specific event occurs (e.g., button click)
+-- toggleSkeletonESP()
