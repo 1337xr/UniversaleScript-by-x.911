@@ -2,6 +2,7 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
+local Camera = game.Workspace.CurrentCamera
 
 -- Function to create Skeleton ESP
 local function createSkeletonESP(player)
@@ -32,8 +33,8 @@ local function createSkeletonESP(player)
                     if part1 and part2 then
                         local pos1 = part1.Position
                         local pos2 = part2.Position
-                        local screenPos1 = game.Workspace.CurrentCamera:WorldToScreenPoint(pos1)
-                        local screenPos2 = game.Workspace.CurrentCamera:WorldToScreenPoint(pos2)
+                        local screenPos1 = Camera:WorldToViewportPoint(pos1)
+                        local screenPos2 = Camera:WorldToViewportPoint(pos2)
                         line.From = Vector2.new(screenPos1.X, screenPos1.Y)
                         line.To = Vector2.new(screenPos2.X, screenPos2.Y)
                     else
@@ -67,8 +68,8 @@ local function removeSkeletonESP(player)
     if player.Character then
         local character = player.Character
         for _, child in pairs(character:GetDescendants()) do
-            if child:IsA("Highlight") or (child:IsA("Drawing") and child.Name == "Line") then
-                child:Destroy()
+            if child:IsA("Drawing") then
+                child:Remove()
             end
         end
     end
@@ -104,6 +105,3 @@ Players.PlayerAdded:Connect(function(player)
         end
     end)
 end)
-
--- Example: Call the function when a specific event occurs (e.g., button click)
--- toggleSkeletonESP()
